@@ -1,0 +1,741 @@
+## Zustand and React
+
+```tsx filename="useTodoStore.tsx"
+import { create } from "zustand";
+import { ChangeEvent } from "react";
+
+interface Todo {
+  id: number;
+  description: string;
+  isComplete: boolean;
+}
+
+interface TodoState {
+  todos: Todo[];
+  description: string;
+}
+
+interface TodoAction {
+  addTodo: () => void;
+  handleDescription: (e: ChangeEvent<HTMLInputElement>) => void;
+  removeTodo: (id: Todo["id"]) => void;
+}
+
+export const useTodoStore = create<TodoState & TodoAction>((set) => ({
+  todos: [
+    {
+      id: 1,
+      description: "Basketball",
+      isComplete: false,
+    },
+    {
+      id: 2,
+      description: "Basketball",
+      isComplete: false,
+    },
+    {
+      id: 3,
+      description: "Basketball",
+      isComplete: false,
+    },
+  ],
+  description: "",
+
+  // LOGICS =========
+  handleDescription: (e: ChangeEvent<HTMLInputElement>) => {
+    set(() => ({
+      description: e.target.value,
+    }));
+  },
+  addTodo: () => {
+    set((state) => ({
+      todos: [...state.todos, { id: Math.random(), description: state.description, isComplete: false } as Todo],
+    }));
+  },
+  removeTodo: (id: Todo["id"]) => {
+    set((state) => ({
+      todos: state.todos.filter((item) => item.id !== id),
+    }));
+  },
+}));
+```
+
+```tsx filename="index.tsx"
+import { useTodoStore } from "../stores/useTodoStores";
+
+export default function ZustandTodos() {
+  // states
+  const { description, todos } = useTodoStore();
+
+  // functionality
+  const { addTodo, handleDescription, removeTodo } = useTodoStore();
+
+  return (
+    <>
+      <input type="text" value={description} onChange={(e) => handleDescription(e)} />
+      <button onClick={addTodo}>Add</button>
+
+      <div>
+        {todos.map((item) => (
+          <div key={item.id}>
+            <li>{item.description}</li>
+            <button onClick={() => removeTodo(item.id)}>Delete</button>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+```
+
+## Input Lists
+
+```tsx filename="index.tsx"
+import { useState } from "react";
+
+interface InputList {
+  firstName: string;
+  lastName: string;
+}
+
+export default function Input() {
+  const [lists, setLists] = useState<InputList[]>([]);
+  const [inputList, setInputList] = useState<InputList[]>([
+    {
+      firstName: "",
+      lastName: "",
+    },
+  ]);
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>, index: number) {
+    // getting the html element of name and value
+    const { name, value } = e.target;
+
+    // spread the array
+    const list: any = [...inputList];
+
+    // track the array with the name and index to mutate input value element
+    list[index as number][name as keyof InputList] = value;
+
+    // update the UI
+    setInputList(list);
+  }
+
+  function onSubmit() {
+    setLists([...inputList]);
+  }
+
+  function handleAddClick() {
+    setInputList([...inputList, { firstName: "", lastName: "" }]);
+  }
+  return (
+    <>
+      {inputList.map((item, index) => (
+        <div key={index}>
+          <input
+            type="text"
+            name="firstName"
+            value={item.firstName}
+            placeholder="Enter First Name"
+            onChange={(e) => handleInputChange(e, index)}
+          />
+          <input
+            type="text"
+            name="lastName"
+            value={item.lastName}
+            placeholder="Enter Last Name"
+            onChange={(e) => handleInputChange(e, index)}
+          />
+        </div>
+      ))}
+
+      <div className="flex items-center space-x-2">
+        <button className="text-white bg-violet-400 p-2 rounded-md" onClick={handleAddClick}>
+          Add Input field
+        </button>
+        <button className="text-white bg-violet-400 p-2 rounded-md" onClick={onSubmit}>
+          Submit
+        </button>
+      </div>
+
+      <div>{JSON.stringify(inputList)}</div>
+      <hr />
+      <h2>Added Input List</h2>
+
+      {lists?.map((list: any, index: number) => (
+        <div key={index}>
+          {(list.firstName !== "" || list.lastName !== "") && (
+            <>
+              <p>First Name: {list.firstName}</p>
+              <p>Last Name: {list.lastName}</p>
+            </>
+          )}
+        </div>
+      ))}
+    </>
+  );
+}
+```
+
+## Steps
+
+```ts filename="hooks/useMultiStep.ts"
+import { useState } from "react";
+
+export function useMultistep(steps: React.ReactNode[]) {
+  const [componentIndex, setComponentIndex] = useState<number>(0);
+
+  const lastStep = steps.length - 1;
+
+  function next() {
+    if (componentIndex >= lastStep) return componentIndex;
+
+    setComponentIndex(componentIndex + 1);
+  }
+
+  function back() {
+    if (componentIndex <= 0) return componentIndex;
+
+    setComponentIndex(componentIndex - 1);
+  }
+
+  function goTo(indexNumber: number) {
+    setComponentIndex(indexNumber);
+  }
+
+  return {
+    componentIndex,
+    step: steps[componentIndex],
+    goTo,
+    next,
+    back,
+    steps,
+  };
+}
+```
+
+```tsx filename="index.tsx"
+import { useMultistep } from "../hooks/useMultiStep";
+
+export default function Steps() {
+  const { step, componentIndex, steps, next, back } = useMultistep([<>One</>, <>Two</>]);
+
+  const isFirstStep = componentIndex === 0;
+
+  return (
+    <div className="bg-slate-300 min-h-screen">
+      <div className=" mt-6 border border-white rounded-md p-4 w-1/2 mx-auto">
+        <h1>Multi Step Form</h1>
+
+        <p>
+          {componentIndex + 1}/{steps.length}
+        </p>
+
+        <div className="flex items-center justify-center my-5">{step}</div>
+
+        <div className="flex items-center justify-center space-x-2">
+          <button
+            onClick={back}
+            disabled={isFirstStep ? true : false}
+            className="border border-white px-3 py-1 rounded-lg"
+          >
+            Back
+          </button>
+          <button
+            onClick={next}
+            disabled={!isFirstStep ? true : false}
+            className="border border-white px-3 py-1 rounded-lg"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+## React Hook Form - FieldsArray
+
+```tsx filename="DynamicInput.tsx"
+export default function DynamicInput() {
+  const { register, fields, handleAppendButton } = props;
+
+  return (
+    <div>
+      {fields.map((field: any, i: number) => (
+        <input key={field.id} {...register(`fullName.${i}.value` as const)} />
+      ))}
+      <button type="button" onClick={handleAppendButton}>
+        append
+      </button>
+      <p>{JSON.stringify(fields)}</p>
+    </div>
+  );
+}
+```
+
+```tsx filename="index.tsx"
+import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
+import DynamicInput from "./components/DynamicInput";
+
+interface IFormInput {
+  name: string;
+  email: string;
+  password: string;
+  fullName: { value: string }[];
+}
+
+export default function App() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+  } = useForm<IFormInput>({
+    defaultValues: {
+      fullName: [{ value: "first name" }, { value: "last name" }],
+    },
+  });
+
+  const { fields, append } = useFieldArray({ name: "fullName", control });
+
+  const onSubmit: SubmitHandler<IFormInput> = (data) => {
+    console.log("data", data);
+  };
+
+  function handleAppendButton() {
+    append({ value: "" }, { focusName: "fullName.2.value" });
+  }
+
+  return (
+    <div className="App">
+      <h1>React Hook Form</h1>
+
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div>
+          <label>Name</label>
+          <input type="text" {...register("name", { required: true })} />
+          <p>{errors.name && "name is required"}</p>
+        </div>
+
+        <div>
+          <label>Email</label>
+          <input type="text" {...register("email", { required: true })} />
+          <p>{errors.email && "email is required"}</p>
+        </div>
+
+        <div>
+          <label>password</label>
+          <input type="password" {...register("password", { required: true })} />
+          <p>{errors.password && "password is required"}</p>
+        </div>
+
+        <DynamicInput register={register} fields={fields} handleAppendButton={handleAppendButton} />
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  );
+}
+```
+
+## React-Select
+
+npm i `react-select`
+
+```tsx filename="index.tsx"
+import Select from "react-select";
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface SecondOption {
+  flavour: string;
+  title: string;
+}
+
+const options = [
+  { value: "chocolate", label: "Chocolate" },
+  { value: "strawberry", label: "Strawberry" },
+  { value: "vanilla", label: "Vanilla" },
+] as Option[];
+
+const secondOptions = [
+  { flavour: "chocolate", title: "Chocolate" },
+  { flavour: "strawberry", title: "Strawberry" },
+  { flavour: "vanilla", title: "Vanilla" },
+] as SecondOption[];
+
+export default function App() {
+  return (
+    <div className="bg-slate-700 min-h-screen">
+      <h1 className="text-white">React Multiselect</h1>
+
+      <h2 className="text-white text-xl">Multi-Select</h2>
+      <Select defaultValue={[options[0], options[1]]} options={options} isMulti />
+
+      <h2 className="mt-5 text-xl text-white">Single Select</h2>
+      <Select
+        options={secondOptions}
+        getOptionLabel={(option) => option.title}
+        getOptionValue={(option) => option.flavour}
+        isSearchable={false}
+      />
+    </div>
+  );
+}
+```
+
+## Next and Prev Button
+
+```ts filename="index.tsx"
+import { useState } from "react";
+
+interface User {
+  id: number;
+  name: string;
+}
+
+const users = [
+  { id: 1, name: "Leon" },
+  { id: 2, name: "Mark" },
+  { id: 3, name: "Boombayah" },
+] as User[];
+
+export default function App() {
+  const [index, setIndex] = useState<number>(0);
+
+  // getting the last user
+  const lastUser = users.length - 1;
+
+  function next() {
+    setIndex((index: number) => {
+      // if number match the last user return
+      if (index === lastUser) return lastUser;
+
+      // else continue increase the number of 1
+      return index + 1;
+    });
+  }
+  function prev() {
+    setIndex((index: number) => {
+      // if number match 0 just return 0
+      if (index === 0) return 0;
+
+      // else continue to decrease number by 1
+      return index - 1;
+    });
+  }
+
+  return (
+    <div className="App">
+      <h1>Prev and Next button with React</h1>
+
+      <p>{users[index].id}</p>
+      <p>{users[index].name}</p>
+
+      <button onClick={prev} disabled={index === 0 ? true : false}>
+        Previous
+      </button>
+      <button onClick={next} disabled={index === lastUser ? true : false}>
+        Next
+      </button>
+    </div>
+  );
+}
+```
+
+## Labels and Country Icons
+
+```ts filename="index.ts"
+interface ICountryIcon {
+  [key: string]: IconType;
+}
+
+const countryIcons = {
+  "United States": UsIcon,
+  Indonesia: IdIcon,
+  ประเทศไทย: ThIcon,
+  "Việt Nam": VnIcon,
+} as ICountryIcon;
+
+const currencies = [
+  { label: "Malaysian Ringgit", value: "MYR" },
+  { label: "Indonesian Rupiah", value: "IDR" },
+  { label: "Philippine Pesos", value: "PHP" },
+  { label: "Thai Baht", value: "THB" },
+  { label: "Vietnamese Dong", value: "VND" },
+  { label: "Singapore Dollar", value: "SGD" },
+  { label: "United States Dollar", value: "USD" },
+  { label: "Euro", value: "EUR" },
+] as Currency[];
+
+const currencyIcons = {
+  MYR: MyIcon,
+  IDR: IdIcon,
+  PHP: UsIcon,
+  THB: ThIcon,
+  VND: VnIcon,
+  SGD: SgIcon,
+  USD: UsIcon,
+  EUR: UsIcon,
+} as Record<Currency["value"], IconType>;
+
+const [firstCurrency] = currencies;
+
+function getCurrencyIcon(value: Currency["value"] = "MYR") {
+  return currencyIcons[value];
+}
+```
+
+## Radio and checbox
+
+```tsx filename="components/Checkbox.tsx"
+import { useState } from "react";
+import { Option } from "../App";
+
+export default function Checkbox({ options }: { options: Option[] }) {
+  const [selectedOption, setSelectedOption] = useState<string[]>([]);
+
+  function handleOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
+    // Extract the value of the selected option from the event object
+    const value = event.target.value;
+
+    // We create a new array to store the updated list of selected options.
+    let updatedOptions = [];
+
+    // If the selected options already include the value of the option that was just clicked,
+    if (selectedOption.includes(value)) {
+      // remove that value from the list of selected options by filtering it out.
+      updatedOptions = selectedOption.filter((val) => val !== value);
+    } else {
+      // else add it to the list of selected options.
+      updatedOptions = [...selectedOption, value];
+    }
+
+    setSelectedOption(updatedOptions);
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    // Prevent the default form submission behavior
+    event.preventDefault();
+
+    // if selectedOption is empty array return empty
+    if (selectedOption.length === 0) return;
+
+    // Log the selected options to the console
+    console.log(selectedOption);
+  }
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <div>
+          {options.map((option) => (
+            <label key={option.value} className="inline-flex items-center">
+              <input
+                type="checkbox"
+                name="option"
+                value={option.value}
+                checked={selectedOption.includes(option.value)}
+                onChange={handleOptionChange}
+                className="sr-only"
+              />
+              <span
+                className={`ml-2 ${
+                  selectedOption.includes(option.value)
+                    ? "ring-2 ring-offset-2 ring-blue-500 bg-blue-100"
+                    : "ring-2 ring-offset-2 ring-gray-300 bg-white"
+                } px-4 py-2 rounded-md`}
+              >
+                {option.label}
+              </span>
+            </label>
+          ))}
+
+          <button className="ml-4 border-black border p-3 rounded-md" type="submit">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+```
+
+```tsx filename="components/RadioGroup.tsx"
+import { useState } from "react";
+import type { Option } from "../App";
+
+export default function RadioGroup({ options }: { options: Option[] }) {
+  const [selectOption, setSelectOption] = useState<string | null>(null);
+
+  function handleOptionChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setSelectOption(event.target.value);
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); // prevent default form submission behavior
+
+    // if selectOption is empty retur nothing
+    if (selectOption === null) return;
+
+    // send the selected options to the server
+    console.log(selectOption);
+  }
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <div className="flex flex-col">
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className={`flex items-center py-2 ${
+                selectOption === option.value ? "bg-green-200 text-green-700" : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              <input
+                type="radio"
+                name="option1"
+                value={option.value}
+                checked={selectOption === option.value}
+                onChange={handleOptionChange}
+                className="sr-only"
+              />
+              <span className="ml-2">{option.label}</span>
+            </label>
+          ))}
+
+          <button type="submit" className="py-2 px-4 bg-blue-500 text-white rounded mt-2">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+```
+
+```tsx filename="index.tsx"
+import Checkbox from "./components/Checkbox";
+import RadioGroup from "./components/RadioGroup";
+
+export interface Option {
+  value: string;
+  label: string;
+}
+
+const checkboxOptions: Option[] = [
+  { value: "option1", label: "Option 1" },
+  { value: "option2", label: "Option 2" },
+];
+
+const radioGroupOptions: Option[] = [
+  { value: "option1", label: "Option 1" },
+  { value: "option2", label: "Option 2" },
+];
+
+export default function App() {
+  return (
+    <div>
+      <Checkbox options={checkboxOptions} />
+      <RadioGroup options={radioGroupOptions} />
+    </div>
+  );
+}
+```
+
+## Component Library - Single Select Menu
+
+```tsx filename="App.tsx"
+const menuList = ["Account", "Notification", "Marketing"];
+
+export default function App() {
+  return (
+  const [selected, setSelected] = React.useState<string | number | undefined>(menuList[0]);
+
+  function onChange(value: React.ReactNode) {
+    const items = menuList.find((item) => item === value);
+
+    if (typeof items === "undefined") return;
+
+    setSelected(items);
+  }
+
+  <SingleSelectMenu value={selected} onChange={(value) => onChange(value)}>
+    <SingleSelectMenu.Trigger label={"Select"} />
+    <SingleSelectMenu.List>
+      {menuList.map((item, index) => (
+        <SingleSelectMenu.Item value={item} key={index}>
+          {item}
+        </SingleSelectMenu.Item>
+      ))}
+    </SingleSelectMenu.List>
+  </SingleSelectMenu>;
+  );
+}
+```
+
+```tsx filename="components/SingleSelectMenu.tsx"
+import React, { ReactNode } from "react";
+import { Listbox } from "@headlessui/react";
+import { ChevronDownIcon } from "@involveasia-ui/icons/outline";
+
+export type SingleSelectProps = {
+  children: React.ReactNode;
+  value?: string | number;
+  onChange?: (value: string | number) => void;
+};
+
+export function SingleSelectMenu({ children, value, onChange }: SingleSelectProps) {
+  return (
+    <Listbox onChange={onChange} value={value}>
+      {children}
+    </Listbox>
+  );
+}
+
+type SingleSelectButtonProps = {
+  label?: SingleSelectProps["value"];
+};
+
+SingleSelectMenu.Trigger = function SingleSelectButton({ label }: SingleSelectButtonProps) {
+  return (
+    <Listbox.Button className="w-[361px] rounded-md border border-gray-300 bg-white px-[6px] py-4">
+      <div className="mx-auto flex max-w-xs items-center justify-between">
+        {label}
+        <ChevronDownIcon className="h-3 w-auto" />
+      </div>
+    </Listbox.Button>
+  );
+};
+
+type SingleSelectListProps = {
+  children: ReactNode;
+};
+
+SingleSelectMenu.List = function SingleSelectList({ children }: SingleSelectListProps) {
+  return <Listbox.Options className="w-[361px] rounded-md bg-white shadow-md">{children}</Listbox.Options>;
+};
+
+type SingleSelectOptionProps = {
+  value?: ReactNode;
+  children?: ReactNode;
+  onClick?: () => void;
+};
+
+SingleSelectMenu.Item = function SingleSelectOption({ children, value }: SingleSelectOptionProps) {
+  return (
+    <Listbox.Option
+      className="flex items-center justify-between py-[14px] px-4 ui-active:bg-violet-500 ui-active:text-white ui-not-active:text-black"
+      value={value}
+    >
+      {children}
+    </Listbox.Option>
+  );
+};
+```
