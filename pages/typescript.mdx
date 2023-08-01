@@ -1,4 +1,313 @@
-# TS Utilities
+# TS All in One
+
+**Why Typescript and why should we use it?**
+
+- TypeScript is a programming language that adds static typing to JavaScript, making it more reliable and catching errors early. It provides better tooling support, including code completion and refactoring. TypeScript improves code maintainability and scalability, especially in larger projects, by enforcing type safety and offering enhanced IDE features. It compiles down to plain JavaScript, so it can run on any JavaScript runtime.
+
+## Why use Enums and when to use it?
+
+- Enums can be useful because they provide a way to define a fixed set of options or choices.
+- They make your code more organised and less prone to mistakes
+
+```ts
+enum Level {
+  Easy = "EASY",
+  Medium = "MEDIUM",
+  Hard = "HARD",
+}
+
+let currentLevel: Level = Level.Medium; //MEDIUM
+```
+
+In summary, enums are handy when you want to represent a fixed set of choices or options
+
+## Why use Tuples and when to use it?
+
+- Tuples can be helpful when you want to represent and work with collections of values that have a specific structure and order.
+- It's important to note that tuples have a fixed length and order, so if you need to add or remove elements dynamically, or if the number of elements can change, other data structures like arrays or objects may be more suitable.
+
+```ts
+let sword: [string, number, number] = ["Sword", 1, 50];
+```
+
+In summary, tuples are useful when you want to group related data with different types together
+
+---
+
+## Why use `Literal Types` and when to use it?
+
+- literal types help ensure that we only use specific values that we define
+- They make our code more precise, prevent mistakes, and provide clear options to choose from.
+
+```ts
+type Character = "Warrior" | "Mage" | "Archer";
+
+function selectCharacter(character: Character) {
+  console.log("Selected character:", character);
+}
+
+selectCharacter("Warrior"); // Output: Selected character: Warrior
+// selectCharacter("Thief"); // Error: Thief is not a valid character
+
+let myCharacter: Character = "Mage";
+console.log("My character is", myCharacter); // Output: My character is Mage
+// myCharacter = "Knight"; // Error: Knight is not a valid character
+```
+
+literal types help us control the exact values that we can use, ensuring that we stay within certain boundaries.
+
+---
+
+## Why use `Intersection Types` and when to use it?
+
+- Combining multiple types: Intersection types allow you to combine two or more types into a single type that has all the properties
+- Extending existing types: Intersection types enable you to extend existing types by adding additional properties
+
+```ts
+type Employee = {
+  id: number;
+  name: string;
+};
+
+type Manager = {
+  department: string;
+};
+
+type ManagerEmployee = Employee & Manager;
+
+const managerEmployee: ManagerEmployee = {
+  id: 1,
+  name: "John Doe",
+  department: "Engineering",
+};
+```
+
+Intersection types provide a powerful tool for combining and extending types and can help you create flexible and reusable type definitions.
+
+---
+
+## Why use `Type Guards` and when to use it?
+
+- Type guards are especially useful when working with union types or when you need to perform different operations depending on the specific type of a variable.
+- Handling different types differently: Sometimes, you have variables that can be of different types.
+
+```ts
+function printLength(value: string | number) {
+  if (typeof value === "string") {
+    console.log(value.length); // TypeScript knows 'value' is a string here
+  }
+}
+```
+
+Type guards are like superpowers that make your code safer, more flexible, and easier to understand.
+
+---
+
+## Why use Discriminated Unions and when to use it?
+
+- Writing more flexible code: Discriminated unions allow you to write code that can handle different shapes in a flexible way.
+- Organizing different types: Discriminated unions help you organize different types of objects that share some common properties.
+
+```ts
+interface Square {
+  kind: "square";
+  size: number;
+}
+
+interface Circle {
+  kind: "circle";
+  radius: number;
+}
+
+interface Triangle {
+  kind: "triangle";
+  base: number;
+  height: number;
+}
+
+// allows you to create type structures where a single property,
+// called a discriminant is used to discriminate between different possible types within a union.
+type Shape = Square | Circle | Triangle;
+
+function calculateArea(shape: Shape): number {
+  switch (shape.kind) {
+    case "square":
+      return shape.size * shape.size;
+    case "circle":
+      return Math.PI * shape.radius * shape.radius;
+    case "triangle":
+      return (shape.base * shape.height) / 2;
+  }
+}
+
+const square: Square = { kind: "square", size: 5 };
+const circle: Circle = { kind: "circle", radius: 3 };
+const triangle: Triangle = { kind: "triangle", base: 4, height: 6 };
+
+console.log(calculateArea(square)); // Output: 25
+console.log(calculateArea(circle)); // Output: ~28.27
+console.log(calculateArea(triangle)); // Output: 12
+```
+
+Discriminated unions in TypeScript are like markers or tags that help you organize and work with different types in a flexible and organized way
+
+---
+
+## Why use `Index Properties` and when to use it?
+
+- Index properties in TypeScript are a way to create objects with properties that can have different names and types.
+- Flexibility in data structures: Index properties make your data structures more flexible. You can add properties to objects without knowing their names beforehand.
+
+```ts
+interface ShoppingList {
+  [itemName: string]: number;
+}
+
+// You can define an object that can store different items and
+// their quantities, even if you don't know the specific items beforehand.
+const groceryList: ShoppingList = {
+  apples: 5,
+  bananas: 3,
+  oranges: 2,
+};
+```
+
+---
+
+## Why use `Function Overloads` and when to use it?
+
+- Function overloads in TypeScript are like having different versions of a function that can handle different types of inputs and produce different results.
+- Handling different types of data: Sometimes you need a function to work with different types of data.
+- Providing a clear interface: Function overloads make your code easier to understand.
+
+```ts
+function calculate(a: number | string, b: number | string): number | string {
+  if (typeof a === "number" && typeof b === "number") {
+    return a + b;
+  } else {
+    return a.toString() + b.toString();
+  }
+}
+
+const result1 = calculate(5, 10); // Output: 15 (number)
+const result2 = calculate("Hello", "World"); // Output: "HelloWorld" (string)
+
+const result3 = calculate(5, "Hello"); // Error: Argument of type 'string' is not assignable to parameter of type 'number' or vice versa
+```
+
+Function Overloads in TypeScript with strict types are like having different versions of a function that are strict about the types of data they can handle.
+
+---
+
+## Why use `Optional Chaining` and when to use it?
+
+- Optional chaining in TypeScript is a feature that allows you to safely access properties and methods of an object, even if some intermediate values are null or undefined.
+- Preventing errors: Sometimes, when working with objects, some properties or nested objects may be missing or undefined.
+
+```ts
+const user = {
+  name: "Alice",
+  address: {
+    street: "123 Main St",
+    city: "New York",
+    // country: "USA", // Uncomment this line to see the effect of optional chaining
+  },
+};
+
+const country = user.address?.country;
+console.log(country); // Output: undefined
+```
+
+Optional Chaining in TypeScript helps us avoid errors when accessing properties or methods of objects.
+
+## Why use `Nullish Coalescing` and when to use it?
+
+- Nullish coalescing in TypeScript is a feature that allows you to provide a default value for a variable if its current value is null or undefined.
+- Setting default values: Sometimes, we have variables that may not have a value assigned to them, and we want to provide a default value instead.
+- Avoiding errors: Using nullish coalescing helps prevent errors that can occur when variables are null or undefined.
+
+```ts
+const username = null;
+const defaultUsername = "Guest";
+
+const finalUsername = username ?? defaultUsername;
+
+console.log(finalUsername); // Output: "Guest"
+```
+
+Nullish coalescing in TypeScript is used to assign default values to variables when they are null or undefined.
+
+**Why use `Generics` and when to use it?**
+
+- Reusability: Generics allow you to create reusable code that can work with different types.
+- Flexibility: Generics offer flexibility when working with unknown or dynamic data types.
+
+```ts
+function getFirstElement<T>(arr: T[]): T | undefined {
+  if (arr.length > 0) {
+    return arr[0];
+  }
+  return undefined;
+}
+
+const numbers: number[] = [1, 2, 3];
+const firstNumber: number | undefined = getFirstElement(numbers);
+console.log(firstNumber); // Output: 1
+
+const names: string[] = ["Alice", "Bob", "Charlie"];
+const firstName: string | undefined = getFirstElement(names);
+console.log(firstName); // Output: "Alice"
+```
+
+Using generics when you have code that operates on multiple types or when you want to create reusable components that can adapt to different data types.
+
+## Why use `Constraints` and when to use it?
+
+- Constraints in TypeScript are used to restrict the set of possible types that can be used with generic type parameters.
+- Type Safety: Constraints help enforce type safety by ensuring that only specific types or types with specific properties/methods can be used with a generic parameter.
+
+```ts
+function mergeObjects<T extends object, U extends object>(obj1: T, obj2: U): T & U {
+  return { ...obj1, ...obj2 };
+}
+
+const obj1 = { name: "Alice", age: 25 };
+const obj2 = { address: "123 Main St", city: "New York" };
+
+const mergedObj = mergeObjects(obj1, obj2);
+console.log(mergedObj);
+// Output: { name: "Alice", age: 25, address: "123 Main St", city: "New York" }
+```
+
+Using constraints when you need to ensure type safety, enforce specific requirements, promote code reusability, or define domain-specific behaviour.
+
+## Generics Utility Types
+
+```ts
+Partial<T>: This utility type creates a new type by making all properties of
+the original type T optional. It allows you to specify partial values
+for objects.
+
+Required<T>: This utility type creates a new type by making all properties
+of the original type T required. It ensures that all properties must be
+provided when creating objects.
+
+Readonly<T>: This utility type creates a new type by making all properties
+of the original type T read-only. It prevents modifications to
+the properties of objects.
+
+Pick<T, K>: This utility type creates a new type by selecting specific
+properties K from the original type T. It allows you to extract a
+subset of properties from an object.
+
+Omit<T, K>: This utility type creates a new type by excluding specific
+properties K from the original type T. It allows you to create a
+new object type without certain properties.
+
+Record<K, T>: This utility type creates a new type where the
+keys K are mapped to values of type T. It helps in defining dictionaries
+or mappings between keys and values.
+```
 
 ## NonNullable
 
