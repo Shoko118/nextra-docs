@@ -33,3 +33,30 @@ const color = fruitColors[correspondingKey];
 
 console.log(color); // Outputs: "yellow"
 ```
+
+## Get Date Start/End
+
+```ts
+// Create a date object for the current date
+let now = new Date();
+
+// Get the current year and month
+let currentYear = now.getFullYear();
+let currentMonth = now.getMonth(); // Note: January is 0, February is 1, and so on.
+
+// Get the first day of the current month
+let firstDay = new Date(currentYear, currentMonth, 1);
+let currentYearCurrentMonthFirstDay = `${firstDay.getFullYear()}-${("0" + (firstDay.getMonth() + 1)).slice(-2)}-${(
+  "0" + firstDay.getDate()
+).slice(-2)}`;
+
+console.log("First day of the current month: ", currentYearCurrentMonthFirstDay);
+
+// Get the last day of the current month
+let lastDay = new Date(currentYear, currentMonth + 1, 0);
+let currentYearCurrentMonthLastDay = `${lastDay.getFullYear()}-${("0" + (lastDay.getMonth() + 1)).slice(-2)}-${(
+  "0" + lastDay.getDate()
+).slice(-2)}`;
+
+console.log("Last day of the current month: ", currentYearCurrentMonthLastDay);
+```
