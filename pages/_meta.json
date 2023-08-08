@@ -1,6 +1,6 @@
 {
   "home": "Intro",
-  "features": "UI Features",
+  "javascript-extras": "Javascript Extras",
   "typescript": "Typescript Utilities",
-  "javascript": "Javascript Logics"
+  "features": "UI Features"
 }

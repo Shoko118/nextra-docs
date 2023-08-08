@@ -1,0 +1,35 @@
+## HTTP Valid
+
+```ts
+function isHttpValid(str: string) {
+  try {
+    const newUrl = new URL(str);
+    return newUrl.protocol === "http:" || newUrl.protocol === "https:";
+  } catch (err) {
+    return false;
+  }
+}
+```
+
+## Corresponding Key
+
+- Is simply the matching key for a specific value in an object or map.
+
+```ts
+const fruitColors = {
+  apple: "red",
+  banana: "yellow",
+  orange: "orange",
+};
+
+// Let's find the color of the banana
+const fruit = "banana";
+
+// The corresponding key in this case is "banana"
+const correspondingKey = fruit;
+
+// We use the corresponding key to find the color
+const color = fruitColors[correspondingKey];
+
+console.log(color); // Outputs: "yellow"
+```
